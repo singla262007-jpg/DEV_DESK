@@ -12,6 +12,9 @@ const toJSON = {
 };
 
 async function connectDB(uri) {
+  if (mongoose.connection.readyState >= 1) {
+    return;
+  }
   const mongoUri = uri || process.env.MONGODB_URI;
   if (!mongoUri) {
     throw new Error("MONGODB_URI is not set in environment variables");

@@ -16,6 +16,18 @@ app.use(cors());
 // Body parsing
 app.use(express.json());
 
+// Serverless DB connection assurance middleware
+app.use(async (_req, _res, next) => {
+  try {
+    if (process.env.MONGODB_URI) {
+      await connectDB();
+    }
+  } catch (err) {
+    console.error("Database connection error:", err.message);
+  }
+  next();
+});
+
 // API root health & information endpoint
 app.get("/", (_req, res) => {
   res.json({
@@ -24,8 +36,14 @@ app.get("/", (_req, res) => {
     port: PORT,
     endpoints: {
       tasks: "/api/tasks",
+      projects: "/api/projects",
       focus: "/api/focus",
       stats: "/api/stats",
+      notes: "/api/notes",
+      goals: "/api/goals",
+      notifications: "/api/notifications",
+      activity: "/api/activity",
+      assistant: "/api/assistant/status",
     },
   });
 });
@@ -41,7 +59,7 @@ app.use((req, res) => {
 // Error handling middleware
 app.use(errorHandler);
 
-// Start server
+// Start server (for traditional long-running Node.js process)
 async function startServer() {
   const uri = process.env.MONGODB_URI;
   if (!uri) {
@@ -72,4 +90,5 @@ if (require.main === module) {
   startServer();
 }
 
-module.exports = { app, startServer };
+app.startServer = startServer;
+module.exports = app;
